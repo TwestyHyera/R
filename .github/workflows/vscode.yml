@@ -2,9 +2,6 @@ name: VS Code Server en GitHub Actions
 
 on:
   workflow_dispatch:  # Permite ejecutarlo manualmente
-  push:
-    branches:
-      - main  # Puedes cambiar esto
 
 jobs:
   run-vscode:
@@ -30,3 +27,8 @@ jobs:
         run: |
           sleep 5  # Espera a que Ngrok inicie
           curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+
+      - name: Mantener proceso activo hasta 6 horas
+        run: |
+          echo "Manteniendo VS Code activo..."
+          while true; do sleep 30; done
