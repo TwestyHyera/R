@@ -1,0 +1,29 @@
+name: VS Code Server en GitHub Actions
+
+on:
+  workflow_dispatch:  # Permite ejecutar manualmente
+  push:
+    branches:
+      - main  # Cambia esto si quieres otro branch
+
+jobs:
+  run-vscode:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configurar entorno
+        run: sudo apt update && sudo apt install -y curl
+
+      - name: Descargar y ejecutar VS Code Server
+        run: |
+          curl -fsSL https://code-server.dev/install.sh | sh
+          nohup code-server --bind-addr 0.0.0.0:8080 --auth none &
+
+      - name: Exponer el puerto con Ngrok
+        run: |
+          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          sudo apt update && sudo apt install ngrok
+          ngrok http 8080 > /dev/null &
+
+      - name: Mostrar URL pública
+        run: curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url'
