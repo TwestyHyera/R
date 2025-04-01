@@ -1,4 +1,4 @@
-name: VS Code Server en GitHub Actions
+name: VS Code Server en GitHub Actions con Backblaze
 
 on:
   workflow_dispatch:  # Permite ejecutarlo manualmente
@@ -8,7 +8,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Instalar dependencias
-        run: sudo apt update && sudo apt install -y curl jq
+        run: sudo apt update && sudo apt install -y curl jq fuse
+
+      - name: Instalar B2 CLI & B2 FUSE
+        run: |
+          curl -O https://f002.backblazeb2.com/file/B2-CLI/b2-linux
+          chmod +x b2-linux
+          sudo mv b2-linux /usr/local/bin/b2
+          git clone https://github.com/sondree/b2_fuse.git
+          cd b2_fuse
+          sudo ./install.sh
+
+      - name: Autenticar Backblaze B2
+        run: |
+          echo "${{ secrets.B2_APPLICATION_KEY }}" | b2 authorize-account "${{ secrets.B2_KEY_ID }}" -
+
+      - name: Montar Backblaze B2 como almacenamiento persistente
+        run: |
+          mkdir -p /mnt/minecraft
+          b2_fuse mount /mnt/minecraft -o bucket=minecraft-server-storage
 
       - name: Descargar y ejecutar VS Code Server
         run: |
