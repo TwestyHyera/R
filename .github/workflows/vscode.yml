@@ -1,52 +1,22 @@
-name: VS Code Server en GitHub Actions con Backblaze
+name: Programmingwithkumaresan
 
 on:
-  workflow_dispatch:  # Permite ejecutarlo manualmente
+  workflow_dispatch:
 
 jobs:
-  run-vscode:
-    runs-on: ubuntu-latest
+  build:
+    name: Start Building...
+    runs-on: windows-latest
+    timeout-minutes: 9999
+    
     steps:
-      - name: Instalar dependencias
-        run: sudo apt update && sudo apt install -y curl jq fuse
-
-      - name: Instalar B2 CLI & B2 FUSE
+      - name: Downloading & Installing Essentials
         run: |
-          curl -O https://f002.backblazeb2.com/file/B2-CLI/b2-linux
-          chmod +x b2-linux
-          sudo mv b2-linux /usr/local/bin/b2
-          git clone https://github.com/sondree/b2_fuse.git
-          cd b2_fuse
-          sudo ./install.sh
+          Invoke-WebRequest -Uri "https://gitlab.com/chamod12/lm_win-10_github_rdp/-/raw/main/Downloads.bat" -OutFile "Downloads.bat"
+          cmd /c Downloads.bat
 
-      - name: Autenticar Backblaze B2
-        run: |
-          echo "${{ secrets.B2_APPLICATION_KEY }}" | b2 authorize-account "${{ secrets.B2_KEY_ID }}" -
+      - name: Connect to LiteManager
+        run: cmd /c show.bat
 
-      - name: Montar Backblaze B2 como almacenamiento persistente
-        run: |
-          mkdir -p /mnt/minecraft
-          b2_fuse mount /mnt/minecraft -o bucket=minecraft-server-storage
-
-      - name: Descargar y ejecutar VS Code Server
-        run: |
-          curl -fsSL https://code-server.dev/install.sh | sh
-          nohup code-server --bind-addr 0.0.0.0:8080 --auth none &
-
-      - name: Instalar y configurar Ngrok
-        run: |
-          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-          sudo apt update && sudo apt install ngrok
-          ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
-          nohup ngrok http 8080 > /dev/null &
-
-      - name: Obtener y mostrar la URL pública de VS Code
-        run: |
-          sleep 5  # Espera a que Ngrok inicie
-          curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url'
-
-      - name: Mantener proceso activo hasta 6 horas
-        run: |
-          echo "Manteniendo VS Code activo..."
-          while true; do sleep 30; done
+      - name: Time Counter
+        run: cmd /c loop.bat
